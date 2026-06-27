@@ -75,7 +75,7 @@ def test_run_wires_all_parts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TRIAGECRAFT_GITHUB_TOKEN", "secret")
     monkeypatch.setenv("TRIAGECRAFT_HOST", "127.0.0.1")
     monkeypatch.setenv("TRIAGECRAFT_PORT", "8000")
-
+    monkeypatch.setattr("triagecraft.runtime.load_dotenv", lambda: None)
     monkeypatch.setattr("triagecraft.runtime.build_app", fake_build_app)
     monkeypatch.setattr("triagecraft.runtime.create_server", fake_create_server)
     monkeypatch.setattr("triagecraft.runtime.uvicorn.run", fake_uvicorn_run)

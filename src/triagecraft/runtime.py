@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import uvicorn
+from dotenv import load_dotenv
 
 from triagecraft.app import build_app, close_app
 from triagecraft.server import create_server
@@ -21,18 +22,23 @@ class RuntimeSettings:
     log_level: str = "info"
 
 
-def _read_env(env: Mapping[str, str]) -> RuntimeSettings:
-    token = env.get("TRIAGECRAFT_GITHUB_TOKEN", "").strip()
+def load_runtime_settings(env: Mapping[str, str] | None = None) -> RuntimeSettings:
+    """
+    Load runtime settings from environment variables.
+    """
+    source = os.environ if env is None else env
+
+    token = source.get("TRIAGECRAFT_GITHUB_TOKEN", "").strip()
     if not token:
         raise RuntimeError("Missing TRIAGECRAFT_GITHUB_TOKEN.")
 
-    config_path = Path(env.get("TRIAGECRAFT_CONFIG_PATH", ".triagecraft.yml"))
-    db_path = Path(env.get("TRIAGECRAFT_DB_PATH", "data/triagecraft.db"))
+    config_path = Path(source.get("TRIAGECRAFT_CONFIG_PATH", ".triagecraft.yml"))
+    db_path = Path(source.get("TRIAGECRAFT_DB_PATH", "data/triagecraft.db"))
 
-    host = env.get("TRIAGECRAFT_HOST", "127.0.0.1").strip() or "127.0.0.1"
-    log_level = env.get("TRIAGECRAFT_LOG_LEVEL", "info").strip() or "info"
+    host = source.get("TRIAGECRAFT_HOST", "127.0.0.1").strip() or "127.0.0.1"
+    log_level = source.get("TRIAGECRAFT_LOG_LEVEL", "info").strip() or "info"
 
-    port_raw = env.get("TRIAGECRAFT_PORT", "8000").strip()
+    port_raw = source.get("TRIAGECRAFT_PORT", "8000").strip()
     try:
         port = int(port_raw)
     except ValueError as exc:
@@ -51,19 +57,13 @@ def _read_env(env: Mapping[str, str]) -> RuntimeSettings:
     )
 
 
-def load_runtime_settings(env: Mapping[str, str] | None = None) -> RuntimeSettings:
-    """
-    Load runtime settings from environment variables.
-    """
-    source = os.environ if env is None else env
-    return _read_env(source)
-
-
-def run(env: Mapping[str, str] | None = None) -> None:
+def run() -> None:
     """
     Build the app and start the webhook server.
     """
-    settings = load_runtime_settings(env)
+    load_dotenv()
+    settings = load_runtime_settings()
+
     triage_app = build_app(
         settings.config_path,
         settings.github_token,
@@ -78,5 +78,7 @@ def run(env: Mapping[str, str] | None = None) -> None:
             port=settings.port,
             log_level=settings.log_level,
         )
+    except KeyboardInterrupt:
+        print("Stopping TriageCraft...")
     finally:
         close_app(triage_app)
