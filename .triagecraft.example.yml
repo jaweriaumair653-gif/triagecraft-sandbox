@@ -1,0 +1,12 @@
+repository: owner/repo
+duplicate_threshold: 0.85
+label_threshold: 0.75
+summary_threshold: 0.70
+dry_run: true
+allowed_labels:
+  - bug
+  - feature
+  - docs
+  - question
+  - needs-info
+webhook_secret: replace_me

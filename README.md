@@ -57,6 +57,34 @@ Current focus:
 - `docs/workflow.md` — event and decision flow
 - `docs/roadmap.md` — phased development plan
 
+## Quick start
+
+1. Copy `.env.example` to `.env`
+2. Copy `.triagecraft.example.yml` to `.triagecraft.yml`
+3. Edit `.env` and `.triagecraft.yml`
+4. Install dependencies
+5. Run the app
+
+## Run locally
+
+```powershell
+python -m triagecraft
+
+Required environment variables
+TRIAGECRAFT_GITHUB_TOKEN
+TRIAGECRAFT_CONFIG_PATH
+TRIAGECRAFT_DB_PATH
+TRIAGECRAFT_HOST
+TRIAGECRAFT_PORT
+TRIAGECRAFT_LOG_LEVEL
+
+## Deployment notes
+
+- `dry_run: true` is recommended while testing
+- webhook signatures should use `webhook_secret`
+- `TRIAGECRAFT_GITHUB_TOKEN` should be kept private
+- the SQLite database file is created automatically if needed
+
 ## Contributing
 
 Contributions will be welcomed after the MVP structure is finalized.
