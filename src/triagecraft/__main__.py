@@ -2,5 +2,10 @@ from __future__ import annotations
 
 from triagecraft.runtime import run
 
-if __name__ == "__main__":
+
+def main() -> None:
     run()
+
+
+if __name__ == "__main__":
+    main()
