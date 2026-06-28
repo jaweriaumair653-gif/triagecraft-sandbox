@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -14,6 +15,8 @@ from triagecraft.comment_templates import (
 )
 from triagecraft.models import ProcessingResult, RepositoryConfig
 from triagecraft.state_store import StateStore
+
+logger = logging.getLogger(__name__)
 
 
 class GitHubActionsClient(Protocol):
@@ -69,12 +72,25 @@ class ActionEngine:
         Dry-run mode and repeated actions are skipped safely.
         """
         if result.decision.should_skip or self.config.dry_run:
+            logger.info(
+                "Skipping actions for %s#%s (dry_run=%s, should_skip=%s)",
+                repository,
+                issue_id,
+                self.config.dry_run,
+                result.decision.should_skip,
+            )
             return ActionResult()
 
         if event_id is not None and self.store.has_processed_event(event_id):
+            logger.info(
+                "Skipping actions for %s#%s because event %s was already processed",
+                repository,
+                issue_id,
+                event_id,
+            )
             return ActionResult(event_recorded=True)
 
-        labels = self._select_labels(result)
+        labels = self.select_labels(result)
         comment_body = self._build_comment_body(result, labels)
 
         action_result = ActionResult()
@@ -88,6 +104,7 @@ class ActionEngine:
                 action_hash=self._hash_text(",".join(labels)),
                 created_at=self._now_iso(),
             )
+            logger.info("Applied labels %s to %s#%s", labels, repository, issue_id)
             action_result.labels_applied = True
 
         if comment_body and not self.store.has_action(repository, issue_id, "comment"):
@@ -99,13 +116,18 @@ class ActionEngine:
                 action_hash=self._hash_text(comment_body),
                 created_at=self._now_iso(),
             )
+            logger.info("Posted comment to %s#%s", repository, issue_id)
             action_result.comment_posted = True
 
         if event_id is not None and event_created_at is not None:
             self.store.mark_event_processed(event_id, repository, event_created_at)
+            logger.info("Recorded event %s for %s#%s", event_id, repository, issue_id)
             action_result.event_recorded = True
 
         return action_result
+
+    def select_labels(self, result: ProcessingResult) -> list[str]:
+        return self._select_labels(result)
 
     def _select_labels(self, result: ProcessingResult) -> list[str]:
         labels: list[str] = []
