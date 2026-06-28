@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -57,12 +58,24 @@ def load_runtime_settings(env: Mapping[str, str] | None = None) -> RuntimeSettin
     )
 
 
+def _configure_logging(log_level: str) -> None:
+    level = getattr(logging, log_level.upper(), logging.INFO)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+
+
 def run() -> None:
     """
     Build the app and start the webhook server.
     """
     load_dotenv()
     settings = load_runtime_settings()
+    _configure_logging(settings.log_level)
+
+    logger = logging.getLogger(__name__)
+    logger.info("Starting TriageCraft on %s:%s", settings.host, settings.port)
 
     triage_app = build_app(
         settings.config_path,
@@ -79,6 +92,6 @@ def run() -> None:
             log_level=settings.log_level,
         )
     except KeyboardInterrupt:
-        print("Stopping TriageCraft...")
+        logger.info("Stopping TriageCraft...")
     finally:
         close_app(triage_app)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +13,8 @@ from triagecraft.models import NormalizedIssue, RepositoryConfig
 from triagecraft.service import TriageService
 from triagecraft.state_store import StateStore
 from triagecraft.webhooks import parse_webhook_event
+
+logger = logging.getLogger(__name__)
 
 
 class RuntimeGitHubClient(Protocol):
@@ -34,6 +37,44 @@ class TriageApp:
     store: StateStore
     service: TriageService
     engine: ActionEngine
+
+
+@dataclass(slots=True)
+class WebhookExecutionResult:
+    processed: bool
+    repository: str
+    issue_id: int
+    duplicate_candidates: int
+    labels: list[str]
+    should_comment: bool
+    should_label: bool
+    should_request_info: bool
+    labels_applied: bool
+    comment_posted: bool
+    event_recorded: bool
+    dry_run: bool
+    summary_text: str
+    summary_length: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "processed": self.processed,
+            "repository": self.repository,
+            "issue": self.issue_id,
+            "duplicate_candidates": self.duplicate_candidates,
+            "labels": self.labels,
+            "should_comment": self.should_comment,
+            "should_label": self.should_label,
+            "should_request_info": self.should_request_info,
+            "labels_applied": self.labels_applied,
+            "comment_posted": self.comment_posted,
+            "event_recorded": self.event_recorded,
+            "dry_run": self.dry_run,
+            "summary": {
+                "text": self.summary_text,
+                "length": self.summary_length,
+            },
+        }
 
 
 def build_app(
@@ -64,21 +105,67 @@ def handle_webhook_payload(
     *,
     event_id: str | None = None,
     corpus: Sequence[NormalizedIssue] | None = None,
-) -> ActionResult:
+) -> WebhookExecutionResult:
     event = parse_webhook_event(payload)
 
     if event.issue is None:
         raise ValueError("Webhook payload does not contain an issue.")
 
-    result = app.service.process_issue(event.issue, list(corpus or []))
+    logger.info(
+        "Webhook received repository=%s issue=%s action=%s",
+        event.repository,
+        event.issue.id,
+        event.action,
+    )
 
-    return app.engine.execute(
+    result = app.service.process_issue(event.issue, list(corpus or []))
+    labels = app.engine.select_labels(result)
+
+    logger.info(
+        "Processing complete repository=%s issue=%s duplicates=%s labels=%s",
+        event.repository,
+        event.issue.id,
+        len(result.duplicate_candidates),
+        labels,
+    )
+
+    action_result: ActionResult = app.engine.execute(
         repository=event.repository,
         issue_id=event.issue.id,
         result=result,
         event_id=event_id,
         event_created_at=event.issue.created_at.isoformat(),
     )
+
+    summary_text = result.summary.text if result.summary is not None else ""
+    summary_length = result.summary.length if result.summary is not None else 0
+
+    execution = WebhookExecutionResult(
+        processed=True,
+        repository=event.repository,
+        issue_id=event.issue.id,
+        duplicate_candidates=len(result.duplicate_candidates),
+        labels=labels,
+        should_comment=result.decision.should_comment,
+        should_label=result.decision.should_label,
+        should_request_info=result.decision.should_request_info,
+        labels_applied=action_result.labels_applied,
+        comment_posted=action_result.comment_posted,
+        event_recorded=action_result.event_recorded,
+        dry_run=app.config.dry_run,
+        summary_text=summary_text,
+        summary_length=summary_length,
+    )
+
+    logger.info(
+        "Webhook execution complete repository=%s issue=%s comment_posted=%s labels_applied=%s",
+        event.repository,
+        event.issue.id,
+        execution.comment_posted,
+        execution.labels_applied,
+    )
+
+    return execution
 
 
 def close_app(app: TriageApp) -> None:
