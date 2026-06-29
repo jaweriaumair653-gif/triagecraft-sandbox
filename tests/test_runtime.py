@@ -14,7 +14,7 @@ def test_load_runtime_settings_defaults() -> None:
     assert settings.config_path == Path(".triagecraft.yml")
     assert settings.db_path == Path("data/triagecraft.db")
     assert settings.github_token == "secret"
-    assert settings.host == "127.0.0.1"
+    assert settings.host == "0.0.0.0"
     assert settings.port == 8000
     assert settings.log_level == "info"
 

@@ -18,7 +18,7 @@ class RuntimeSettings:
     config_path: Path
     db_path: Path
     github_token: str
-    host: str = "127.0.0.1"
+    host: str = "0.0.0.0"
     port: int = 8000
     log_level: str = "info"
 
@@ -36,7 +36,7 @@ def load_runtime_settings(env: Mapping[str, str] | None = None) -> RuntimeSettin
     config_path = Path(source.get("TRIAGECRAFT_CONFIG_PATH", ".triagecraft.yml"))
     db_path = Path(source.get("TRIAGECRAFT_DB_PATH", "data/triagecraft.db"))
 
-    host = source.get("TRIAGECRAFT_HOST", "127.0.0.1").strip() or "127.0.0.1"
+    host = source.get("TRIAGECRAFT_HOST", "0.0.0.0").strip() or "0.0.0.0"
     log_level = source.get("TRIAGECRAFT_LOG_LEVEL", "info").strip() or "info"
 
     port_raw = source.get("TRIAGECRAFT_PORT", "8000").strip()
