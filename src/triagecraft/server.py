@@ -59,10 +59,18 @@ def create_server(triage_app: TriageApp) -> FastAPI:
         )
 
         if triage_app.config.webhook_secret:
-            _verify_signature(triage_app.config.webhook_secret, raw_body, x_hub_signature_256)
+            _verify_signature(
+                triage_app.config.webhook_secret,
+                raw_body,
+                x_hub_signature_256,
+            )
 
         if x_github_event != "issues":
-            logger.info("Ignoring webhook delivery=%s event=%s", x_github_delivery, x_github_event)
+            logger.info(
+                "Ignoring webhook delivery=%s event=%s",
+                x_github_delivery,
+                x_github_event,
+            )
             return {"status": "ignored", "event": x_github_event}
 
         try:
