@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -55,6 +56,7 @@ class WebhookExecutionResult:
     dry_run: bool
     summary_text: str
     summary_length: int
+    duration_ms: float
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -74,6 +76,7 @@ class WebhookExecutionResult:
                 "text": self.summary_text,
                 "length": self.summary_length,
             },
+            "duration_ms": self.duration_ms,
         }
 
 
@@ -106,6 +109,7 @@ def handle_webhook_payload(
     event_id: str | None = None,
     corpus: Sequence[NormalizedIssue] | None = None,
 ) -> WebhookExecutionResult:
+    start_time = time.perf_counter()
     event = parse_webhook_event(payload)
 
     if event.issue is None:
@@ -140,6 +144,7 @@ def handle_webhook_payload(
 
     summary_text = result.summary.text if result.summary is not None else ""
     summary_length = result.summary.length if result.summary is not None else 0
+    duration_ms = (time.perf_counter() - start_time) * 1000
 
     execution = WebhookExecutionResult(
         processed=True,
@@ -156,14 +161,16 @@ def handle_webhook_payload(
         dry_run=app.config.dry_run,
         summary_text=summary_text,
         summary_length=summary_length,
+        duration_ms=duration_ms,
     )
 
     logger.info(
-        "Webhook execution complete repository=%s issue=%s comment_posted=%s labels_applied=%s",
+        "Webhook execution complete repository=%s issue=%s comment_posted=%s labels_applied=%s duration_ms=%.2f",
         event.repository,
         event.issue.id,
         execution.comment_posted,
         execution.labels_applied,
+        execution.duration_ms,
     )
 
     return execution

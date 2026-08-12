@@ -125,6 +125,7 @@ def test_handle_webhook_payload_runs_pipeline(tmp_path: Path) -> None:
     assert client.labels_calls
     assert client.comments_calls
     assert store.has_processed_event("evt-1") is True
+    assert result.duration_ms >= 0
 
 
 def test_handle_webhook_payload_emits_logs(tmp_path: Path, caplog) -> None:
