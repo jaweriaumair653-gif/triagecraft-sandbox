@@ -117,3 +117,107 @@ allowed_labels:
   - docs
   - question
   - needs-info
+  ```
+
+
+  ## CURRENT TEST STATUS
+
+The full automated test suite is now green.
+
+Latest verified result:
+
+`61 passed in 5.42s`
+
+The `Issue.number` migration is fully covered by updated regression tests.
+
+Previously failing tests were updated to reflect the new GitHub issue model and webhook payload contract.
+
+Current test status:
+
+- All tests passing
+- No known test failures
+- Issue ID vs issue number regression covered
+
+---
+
+## LATEST DEVELOPMENT CHECKPOINT
+
+Latest pushed commit:
+
+`7b84881 test: update issue number expectations`
+
+Previous commits:
+
+`b0e0fc0 docs: add project state handoff`
+
+`ee0906d chore: ignore local triagecraft config`
+
+`c68f28b fix: use GitHub issue number for API actions`
+
+Repository status at this checkpoint:
+
+- `main` is synchronized with `origin/main`
+- Working tree is clean
+- Full test suite passes: `61 passed`
+
+The GitHub issue-number migration is complete.
+
+---
+
+## CURRENT DEVELOPMENT PHASE
+
+The MVP is functionally working and regression-tested.
+
+Phase 1 — MVP functionality:
+
+**COMPLETE**
+
+Phase 2 — Regression protection:
+
+**COMPLETE**
+
+Current phase:
+
+**Feature and reliability development**
+
+Do not change the existing working GitHub webhook/action flow without preserving the current 61-test green baseline.
+
+---
+
+## NEXT PLANNED WORK
+
+Before adding major features:
+
+1. Review the existing architecture and test coverage.
+2. Identify the highest-value reliability or functionality improvement.
+3. Add/update tests before changing production behavior where practical.
+4. Keep the full suite green.
+5. Commit focused changes.
+6. Push to `origin/main`.
+7. Update this project-state document after major milestones.
+
+---
+
+## CURRENT KNOWN-GOOD BASELINE
+
+The following behavior has been verified live:
+
+GitHub Issue Created
+→ Webhook received
+→ Issue parsed
+→ Issue normalized
+→ Duplicate detection
+→ Label suggestions
+→ Decision engine
+→ GitHub labels applied
+→ GitHub comment posted
+→ Event recorded
+→ HTTP 200
+
+Observed successful result:
+
+`comment_posted=True`
+
+`labels_applied=True`
+
+The system should continue to preserve this behavior.
