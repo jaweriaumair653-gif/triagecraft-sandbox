@@ -10,6 +10,7 @@ def test_parse_issue_from_payload() -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 123,
+            "number": 15,
             "title": "Bug: app crashes",
             "body": "Steps to reproduce...",
             "user": {"login": "alice"},
@@ -21,6 +22,7 @@ def test_parse_issue_from_payload() -> None:
     issue = parse_issue_from_payload(payload)
 
     assert issue.id == 123
+    assert issue.number == 15
     assert issue.repository == "owner/repo"
     assert issue.title == "Bug: app crashes"
     assert issue.body == "Steps to reproduce..."
@@ -35,6 +37,7 @@ def test_parse_webhook_event_with_issue() -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 123,
+            "number": 15,
             "title": "Bug: app crashes",
             "body": "Steps to reproduce...",
             "user": {"login": "alice"},
@@ -50,6 +53,7 @@ def test_parse_webhook_event_with_issue() -> None:
     assert event.repository == "owner/repo"
     assert event.issue is not None
     assert event.issue.id == 123
+    assert event.issue.number == 15
 
 
 def test_parse_webhook_event_rejects_missing_repository() -> None:
@@ -64,6 +68,7 @@ def test_parse_issue_from_payload_rejects_bad_labels() -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 123,
+            "number": 16,
             "title": "Bug",
             "body": None,
             "user": {"login": "alice"},
@@ -81,6 +86,7 @@ def test_parse_issue_from_payload_rejects_bad_datetime() -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 123,
+            "number": 16,
             "title": "Bug",
             "body": None,
             "user": {"login": "alice"},

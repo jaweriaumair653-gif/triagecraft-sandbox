@@ -24,6 +24,7 @@ def test_tokenize_text_returns_clean_tokens() -> None:
 def test_normalize_issue_builds_structured_result() -> None:
     issue = Issue(
         id=10,
+        number=10,
         repository="owner/repo",
         title="Crash on login!!!",
         body="Steps: open app, visit https://example.com, then crash.",

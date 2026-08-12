@@ -78,6 +78,7 @@ def test_handle_webhook_payload_runs_pipeline(tmp_path: Path) -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 1,
+            "number": 1,
             "title": "Bug: app crashes",
             "body": "The app throws an error and fails during login on every attempt",
             "user": {"login": "alice"},
@@ -147,6 +148,7 @@ def test_handle_webhook_payload_emits_logs(tmp_path: Path, caplog) -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 1,
+            "number": 1,
             "title": "Bug: app crashes",
             "body": "The app throws an error and fails during login on every attempt",
             "user": {"login": "alice"},

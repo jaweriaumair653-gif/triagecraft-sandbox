@@ -17,6 +17,7 @@ def test_process_issue_duplicate_branch() -> None:
 
     issue = Issue(
         id=1,
+        number=1,
         repository="owner/repo",
         title="Crash on login",
         body="App crashes when I sign in and cannot continue using the app",
@@ -65,6 +66,7 @@ def test_process_issue_label_branch() -> None:
 
     issue = Issue(
         id=3,
+        number=3,
         repository="owner/repo",
         title="Bug: app crashes",
         body="The app throws an error and fails during login on every attempt",
@@ -90,6 +92,7 @@ def test_process_issue_dry_run_skips_actions() -> None:
 
     issue = Issue(
         id=4,
+        number=4,
         repository="owner/repo",
         title="How do I install this?",
         body="Can you help me with setup?",

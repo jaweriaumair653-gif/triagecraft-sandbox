@@ -81,6 +81,7 @@ def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 1,
+            "number": 1,
             "title": "Bug: app crashes",
             "body": "The app throws an error and fails during login on every attempt",
             "user": {"login": "alice"},
@@ -118,6 +119,7 @@ def test_webhook_endpoint_rejects_bad_signature(tmp_path: Path) -> None:
         "repository": {"full_name": "owner/repo"},
         "issue": {
             "id": 1,
+            "number": 1,
             "title": "Bug: app crashes",
             "body": "The app throws an error and fails during login on every attempt",
             "user": {"login": "alice"},
