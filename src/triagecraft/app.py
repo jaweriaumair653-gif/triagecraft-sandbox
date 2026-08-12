@@ -129,13 +129,14 @@ def handle_webhook_payload(
         labels,
     )
 
-    action_result: ActionResult = app.engine.execute(
+    action_result = app.engine.execute(
         repository=event.repository,
-        issue_id=event.issue.id,
+        issue_id=event.issue.number,
         result=result,
         event_id=event_id,
         event_created_at=event.issue.created_at.isoformat(),
     )
+
 
     summary_text = result.summary.text if result.summary is not None else ""
     summary_length = result.summary.length if result.summary is not None else 0

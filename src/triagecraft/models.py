@@ -12,13 +12,13 @@ class StrictModel(BaseModel):
 
 class Issue(StrictModel):
     id: int
+    number: int
     repository: str
     title: str
     body: str | None = None
     author: str
     labels: list[str] = Field(default_factory=list)
     created_at: datetime
-
 
 class NormalizedIssue(StrictModel):
     issue_id: int

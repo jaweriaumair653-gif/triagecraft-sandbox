@@ -66,6 +66,7 @@ def parse_issue_from_payload(payload: dict[str, Any]) -> Issue:
 
     repo_full_name = _get_required_str(repository, "full_name", "repository")
     issue_id = _get_required_int(issue_data, "id", "issue")
+    issue_number = _get_required_int(issue_data, "number", "issue")
     title = _get_required_str(issue_data, "title", "issue")
 
     author_data = issue_data.get("user")
@@ -92,6 +93,7 @@ def parse_issue_from_payload(payload: dict[str, Any]) -> Issue:
 
     return Issue(
         id=issue_id,
+        number=issue_number,
         repository=repo_full_name,
         title=title,
         body=body,
