@@ -37,3 +37,4 @@ htmlcov/
 # Project files
 *.sqlite3
 *.db
+.triagecraft.yml
