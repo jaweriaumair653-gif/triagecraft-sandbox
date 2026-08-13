@@ -56,6 +56,7 @@ jobs:
           docker run -d \
             --name triagecraft-ci \
             -p 8000:8000 \
+            -e TRIAGECRAFT_GITHUB_TOKEN=ci-smoke-test-token \
             triagecraft:ci
 
       - name: Wait for health endpoint
