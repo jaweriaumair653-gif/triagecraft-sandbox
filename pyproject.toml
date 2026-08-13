@@ -19,12 +19,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.2.0",
-  "ruff>=0.5.0",
-  "black>=24.0.0",
-  "mypy>=1.10.0",
-  "types-PyYAML",
-  "httpx2",
+  "pytest==9.1.1",
+  "ruff==0.15.18",
+  "black==26.5.1",
+  "mypy==2.1.0",
+  "types-PyYAML==6.0.12.20260518",
+  "httpx2==2.5.0",
 ]
 
 [project.scripts]
