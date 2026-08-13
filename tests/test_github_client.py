@@ -76,7 +76,9 @@ def test_get_issue_builds_correct_request() -> None:
 
     assert issue["id"] == 1
     assert session.requests[0]["method"] == "GET"
-    assert session.requests[0]["url"] == "https://api.github.com/repos/owner/repo/issues/7"
+    assert session.requests[0]["url"] == (
+        "https://api.github.com/repos/owner/repo/issues/7"
+    )
 
 
 def test_search_issues_sends_repo_scoped_query() -> None:
@@ -111,7 +113,9 @@ def test_add_labels_posts_label_list() -> None:
 
     assert labels == ["bug", "help wanted"]
     assert session.requests[0]["method"] == "POST"
-    assert session.requests[0]["json"] == {"labels": ["bug", "help wanted"]}
+    assert session.requests[0]["json"] == {
+        "labels": ["bug", "help wanted"]
+    }
 
 
 def test_post_comment_posts_body() -> None:
@@ -150,9 +154,102 @@ def test_close_issue_patches_state_closed() -> None:
 
 def test_http_errors_become_github_api_errors() -> None:
     session = FakeSession(
-        FakeResponse(status_code=500, payload={"message": "error"}, should_raise=True)
+        FakeResponse(
+            status_code=500,
+            payload={"message": "error"},
+            should_raise=True,
+        )
     )
     client = GitHubClient(token="secret", session=session)
 
     with pytest.raises(GitHubAPIError):
         client.get_issue("owner/repo", 7)
+
+
+def test_http_500_is_retried_before_failing() -> None:
+    responses = [
+        FakeResponse(
+            status_code=500,
+            payload={"message": "error"},
+            should_raise=True,
+        ),
+        FakeResponse(
+            status_code=200,
+            payload={"id": 1, "title": "Bug"},
+            content=b'{"id":1,"title":"Bug"}',
+        ),
+    ]
+
+    class RetrySession(FakeSession):
+        def __init__(self) -> None:
+            super().__init__(responses[0])
+            self.responses = responses
+
+        def request(
+            self,
+            method: str,
+            url: str,
+            params: dict[str, Any] | None = None,
+            json: dict[str, Any] | None = None,
+            timeout: int | float | None = None,
+        ) -> FakeResponse:
+            self.requests.append(
+                {
+                    "method": method,
+                    "url": url,
+                    "params": params,
+                    "json": json,
+                    "timeout": timeout,
+                }
+            )
+            return self.responses.pop(0)
+
+    session = RetrySession()
+    client = GitHubClient(token="secret", session=session)
+
+    issue = client.get_issue("owner/repo", 7)
+
+    assert issue["id"] == 1
+    assert len(session.requests) == 2
+
+
+def test_post_requests_are_not_retried() -> None:
+    responses = [
+        FakeResponse(
+            status_code=500,
+            payload={"message": "error"},
+            should_raise=True,
+        ),
+    ]
+
+    class NoRetrySession(FakeSession):
+        def __init__(self) -> None:
+            super().__init__(responses[0])
+            self.responses = responses
+
+        def request(
+            self,
+            method: str,
+            url: str,
+            params: dict[str, Any] | None = None,
+            json: dict[str, Any] | None = None,
+            timeout: int | float | None = None,
+        ) -> FakeResponse:
+            self.requests.append(
+                {
+                    "method": method,
+                    "url": url,
+                    "params": params,
+                    "json": json,
+                    "timeout": timeout,
+                }
+            )
+            return self.responses.pop(0)
+
+    session = NoRetrySession()
+    client = GitHubClient(token="secret", session=session)
+
+    with pytest.raises(GitHubAPIError):
+        client.post_comment("owner/repo", 7, "hello")
+
+    assert len(session.requests) == 1
