@@ -28,19 +28,36 @@ class FakeClient:
         self.comments_calls = []
         self.closed = False
 
-    def add_labels(self, repo_full_name: str, issue_number: int, labels: list[str]) -> list[str]:
-        self.labels_calls.append((repo_full_name, issue_number, list(labels)))
+    def add_labels(
+        self,
+        repo_full_name: str,
+        issue_number: int,
+        labels: list[str],
+    ) -> list[str]:
+        self.labels_calls.append(
+            (repo_full_name, issue_number, list(labels))
+        )
         return list(labels)
 
-    def post_comment(self, repo_full_name: str, issue_number: int, body: str) -> dict[str, Any]:
-        self.comments_calls.append((repo_full_name, issue_number, body))
+    def post_comment(
+        self,
+        repo_full_name: str,
+        issue_number: int,
+        body: str,
+    ) -> dict[str, Any]:
+        self.comments_calls.append(
+            (repo_full_name, issue_number, body)
+        )
         return {"body": body}
 
     def close(self) -> None:
         self.closed = True
 
 
-def _build_triage_app(tmp_path: Path, secret: str = "topsecret") -> TriageApp:
+def _build_triage_app(
+    tmp_path: Path,
+    secret: str = "topsecret",
+) -> TriageApp:
     config = RepositoryConfig(
         repository="owner/repo",
         dry_run=False,
@@ -51,12 +68,27 @@ def _build_triage_app(tmp_path: Path, secret: str = "topsecret") -> TriageApp:
     store = StateStore(tmp_path / "state.db")
     client = FakeClient()
     service = TriageService(config)
-    engine = ActionEngine(config=config, client=client, store=store)
-    return TriageApp(config=config, client=client, store=store, service=service, engine=engine)
+    engine = ActionEngine(
+        config=config,
+        client=client,
+        store=store,
+    )
+
+    return TriageApp(
+        config=config,
+        client=client,
+        store=store,
+        service=service,
+        engine=engine,
+    )
 
 
 def _signature(secret: str, body: bytes) -> str:
-    digest = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
+    digest = hmac.new(
+        secret.encode("utf-8"),
+        body,
+        hashlib.sha256,
+    ).hexdigest()
     return f"sha256={digest}"
 
 
@@ -72,7 +104,10 @@ def test_health_endpoint_returns_ok(tmp_path: Path) -> None:
 
 
 def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
-    triage_app = _build_triage_app(tmp_path, secret="supersecret")
+    triage_app = _build_triage_app(
+        tmp_path,
+        secret="supersecret",
+    )
     server = create_server(triage_app)
     client = TestClient(server)
 
@@ -83,12 +118,16 @@ def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
             "id": 1,
             "number": 1,
             "title": "Bug: app crashes",
-            "body": "The app throws an error and fails during login on every attempt",
+            "body": (
+                "The app throws an error and fails during "
+                "login on every attempt"
+            ),
             "user": {"login": "alice"},
             "labels": [{"name": "bug"}],
             "created_at": "2026-06-24T10:00:00Z",
         },
     }
+
     body = json.dumps(payload).encode("utf-8")
 
     response = client.post(
@@ -97,7 +136,10 @@ def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
         headers={
             "X-GitHub-Delivery": "evt-1",
             "X-GitHub-Event": "issues",
-            "X-Hub-Signature-256": _signature("supersecret", body),
+            "X-Hub-Signature-256": _signature(
+                "supersecret",
+                body,
+            ),
         },
     )
 
@@ -109,8 +151,13 @@ def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
     assert response.json()["comment_posted"] is True
 
 
-def test_webhook_endpoint_rejects_bad_signature(tmp_path: Path) -> None:
-    triage_app = _build_triage_app(tmp_path, secret="supersecret")
+def test_webhook_endpoint_rejects_bad_signature(
+    tmp_path: Path,
+) -> None:
+    triage_app = _build_triage_app(
+        tmp_path,
+        secret="supersecret",
+    )
     server = create_server(triage_app)
     client = TestClient(server)
 
@@ -121,12 +168,16 @@ def test_webhook_endpoint_rejects_bad_signature(tmp_path: Path) -> None:
             "id": 1,
             "number": 1,
             "title": "Bug: app crashes",
-            "body": "The app throws an error and fails during login on every attempt",
+            "body": (
+                "The app throws an error and fails during "
+                "login on every attempt"
+            ),
             "user": {"login": "alice"},
             "labels": [{"name": "bug"}],
             "created_at": "2026-06-24T10:00:00Z",
         },
     }
+
     body = json.dumps(payload).encode("utf-8")
 
     response = client.post(
@@ -140,3 +191,66 @@ def test_webhook_endpoint_rejects_bad_signature(tmp_path: Path) -> None:
     )
 
     assert response.status_code == 401
+
+
+def test_webhook_endpoint_is_idempotent_for_duplicate_delivery(
+    tmp_path: Path,
+) -> None:
+    triage_app = _build_triage_app(
+        tmp_path,
+        secret="supersecret",
+    )
+    server = create_server(triage_app)
+    client = TestClient(server)
+
+    payload = {
+        "action": "opened",
+        "repository": {"full_name": "owner/repo"},
+        "issue": {
+            "id": 1,
+            "number": 1,
+            "title": "Bug: app crashes",
+            "body": (
+                "The app throws an error and fails during "
+                "login on every attempt"
+            ),
+            "user": {"login": "alice"},
+            "labels": [{"name": "bug"}],
+            "created_at": "2026-06-24T10:00:00Z",
+        },
+    }
+
+    body = json.dumps(payload).encode("utf-8")
+
+    headers = {
+        "X-GitHub-Delivery": "evt-duplicate",
+        "X-GitHub-Event": "issues",
+        "X-Hub-Signature-256": _signature(
+            "supersecret",
+            body,
+        ),
+    }
+
+    first_response = client.post(
+        "/webhooks/github",
+        content=body,
+        headers=headers,
+    )
+
+    second_response = client.post(
+        "/webhooks/github",
+        content=body,
+        headers=headers,
+    )
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    assert first_response.json()["labels_applied"] is True
+    assert first_response.json()["comment_posted"] is True
+
+    assert second_response.json()["labels_applied"] is False
+    assert second_response.json()["comment_posted"] is False
+
+    assert len(triage_app.client.labels_calls) == 1
+    assert len(triage_app.client.comments_calls) == 1
