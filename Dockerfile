@@ -10,7 +10,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml README.md ./
-COPY .triagecraft.yml ./.triagecraft.yml
+COPY .triagecraft.example.yml ./.triagecraft.yml
 COPY src ./src
 
 RUN python -m pip install --upgrade pip \
