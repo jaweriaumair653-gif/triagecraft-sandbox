@@ -221,3 +221,47 @@ Observed successful result:
 `labels_applied=True`
 
 The system should continue to preserve this behavior.
+---
+
+## LIVE END-TO-END VERIFICATION
+
+Verified on 2026-08-13.
+
+A real GitHub issue was successfully processed through the public production-style path:
+
+GitHub Issue
+→ GitHub Webhook
+→ Cloudflare Quick Tunnel
+→ Dockerized TriageCraft
+→ FastAPI webhook endpoint
+→ Issue triage
+→ GitHub API actions
+→ GitHub follow-up webhook
+→ Idempotent handling
+
+Live issue:
+
+GitHub issue number: `18`
+
+GitHub internal issue ID: `5141411085`
+
+Initial `issues.opened` delivery:
+
+- Label selected: `bug`
+- Label applied successfully
+- Comment posted successfully
+- Event recorded
+- Processing duration: `7858.59 ms`
+- HTTP response: `200 OK`
+
+GitHub then generated a follow-up `issues.labeled` webhook because TriageCraft changed the issue label.
+
+The follow-up delivery was handled safely:
+
+- No duplicate label application
+- No duplicate comment
+- Event recorded
+- Processing duration: `862.11 ms`
+- HTTP response: `200 OK`
+
+This confirms the live webhook pipeline and idempotent action handling work end-to-end.
