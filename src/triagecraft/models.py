@@ -20,6 +20,7 @@ class Issue(StrictModel):
     labels: list[str] = Field(default_factory=list)
     created_at: datetime
 
+
 class NormalizedIssue(StrictModel):
     issue_id: int
     clean_title: str

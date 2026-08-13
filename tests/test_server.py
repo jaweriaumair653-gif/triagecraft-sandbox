@@ -34,9 +34,7 @@ class FakeClient:
         issue_number: int,
         labels: list[str],
     ) -> list[str]:
-        self.labels_calls.append(
-            (repo_full_name, issue_number, list(labels))
-        )
+        self.labels_calls.append((repo_full_name, issue_number, list(labels)))
         return list(labels)
 
     def post_comment(
@@ -45,9 +43,7 @@ class FakeClient:
         issue_number: int,
         body: str,
     ) -> dict[str, Any]:
-        self.comments_calls.append(
-            (repo_full_name, issue_number, body)
-        )
+        self.comments_calls.append((repo_full_name, issue_number, body))
         return {"body": body}
 
     def close(self) -> None:
@@ -118,10 +114,7 @@ def test_webhook_endpoint_processes_issue_event(tmp_path: Path) -> None:
             "id": 1,
             "number": 1,
             "title": "Bug: app crashes",
-            "body": (
-                "The app throws an error and fails during "
-                "login on every attempt"
-            ),
+            "body": ("The app throws an error and fails during " "login on every attempt"),
             "user": {"login": "alice"},
             "labels": [{"name": "bug"}],
             "created_at": "2026-06-24T10:00:00Z",
@@ -168,10 +161,7 @@ def test_webhook_endpoint_rejects_bad_signature(
             "id": 1,
             "number": 1,
             "title": "Bug: app crashes",
-            "body": (
-                "The app throws an error and fails during "
-                "login on every attempt"
-            ),
+            "body": ("The app throws an error and fails during " "login on every attempt"),
             "user": {"login": "alice"},
             "labels": [{"name": "bug"}],
             "created_at": "2026-06-24T10:00:00Z",
@@ -210,10 +200,7 @@ def test_webhook_endpoint_is_idempotent_for_duplicate_delivery(
             "id": 1,
             "number": 1,
             "title": "Bug: app crashes",
-            "body": (
-                "The app throws an error and fails during "
-                "login on every attempt"
-            ),
+            "body": ("The app throws an error and fails during " "login on every attempt"),
             "user": {"login": "alice"},
             "labels": [{"name": "bug"}],
             "created_at": "2026-06-24T10:00:00Z",

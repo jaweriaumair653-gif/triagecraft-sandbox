@@ -101,9 +101,7 @@ class GitHubClient:
 
             return None
 
-        raise GitHubAPIError(
-            f"GitHub API request failed: {normalized_method} {path}"
-        )
+        raise GitHubAPIError(f"GitHub API request failed: {normalized_method} {path}")
 
     def get_issue(
         self,

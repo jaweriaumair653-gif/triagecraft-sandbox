@@ -17,15 +17,15 @@ from triagecraft.models import (
 
 def test_issue_model_accepts_valid_data() -> None:
     issue = Issue(
-    id=1,
-    number=1,
-    repository="owner/repo",
-    title="Bug report",
-    body="Something is broken",
-    author="alice",
-    labels=["bug"],
-    created_at=datetime.now(timezone.utc),
-)
+        id=1,
+        number=1,
+        repository="owner/repo",
+        title="Bug report",
+        body="Something is broken",
+        author="alice",
+        labels=["bug"],
+        created_at=datetime.now(timezone.utc),
+    )
     assert issue.id == 1
     assert issue.number == 1
     assert issue.repository == "owner/repo"

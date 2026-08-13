@@ -76,9 +76,7 @@ def test_get_issue_builds_correct_request() -> None:
 
     assert issue["id"] == 1
     assert session.requests[0]["method"] == "GET"
-    assert session.requests[0]["url"] == (
-        "https://api.github.com/repos/owner/repo/issues/7"
-    )
+    assert session.requests[0]["url"] == ("https://api.github.com/repos/owner/repo/issues/7")
 
 
 def test_search_issues_sends_repo_scoped_query() -> None:
@@ -113,9 +111,7 @@ def test_add_labels_posts_label_list() -> None:
 
     assert labels == ["bug", "help wanted"]
     assert session.requests[0]["method"] == "POST"
-    assert session.requests[0]["json"] == {
-        "labels": ["bug", "help wanted"]
-    }
+    assert session.requests[0]["json"] == {"labels": ["bug", "help wanted"]}
 
 
 def test_post_comment_posts_body() -> None:

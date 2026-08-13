@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
-from triagecraft.action_engine import ActionEngine, ActionResult
+from triagecraft.action_engine import ActionEngine
 from triagecraft.config import load_repository_config
 from triagecraft.github_client import GitHubClient
 from triagecraft.models import NormalizedIssue, RepositoryConfig
@@ -140,7 +140,6 @@ def handle_webhook_payload(
         event_id=event_id,
         event_created_at=event.issue.created_at.isoformat(),
     )
-
 
     summary_text = result.summary.text if result.summary is not None else ""
     summary_length = result.summary.length if result.summary is not None else 0
