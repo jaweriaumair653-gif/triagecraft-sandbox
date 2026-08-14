@@ -81,6 +81,20 @@ def create_server(triage_app: TriageApp) -> FastAPI:
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="JSON payload must be an object.")
 
+        action = payload.get("action")
+        if action not in {"opened", "reopened"}:
+            logger.info(
+                "Ignoring webhook delivery=%s event=%s action=%s",
+                x_github_delivery,
+                x_github_event,
+                action,
+            )
+            return {
+                "status": "ignored",
+                "event": x_github_event,
+                "action": action,
+            }
+
         internal_payload = dict(payload)
         internal_payload["event_type"] = x_github_event
 
