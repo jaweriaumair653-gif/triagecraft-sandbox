@@ -22,6 +22,12 @@ TriageCraft is designed to reduce that workload while keeping maintainers in con
 * Flags missing information in new issues
 * Supports dry-run mode for safe testing and validation
 
+## Demo
+
+- GitHub webhook receives issue events through the public tunnel
+- The app processes `opened` issues and ignores `labeled` follow-up events
+- GitHub Actions stays green with lint, tests, build, and smoke test
+
 ## What it does not do
 
 * It does not merge pull requests
