@@ -48,9 +48,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Prepare runtime config
-        run: cp .triagecraft.example.yml .triagecraft.yml
-
       - name: Build image
         run: docker build -t triagecraft:ci .
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -71,6 +72,8 @@ class ActionEngine:
 
         Dry-run mode and repeated actions are skipped safely.
         """
+        start_time = time.perf_counter()
+
         if result.decision.should_skip or self.config.dry_run:
             logger.info(
                 "Skipping actions for %s#%s (dry_run=%s, should_skip=%s)",
@@ -95,8 +98,19 @@ class ActionEngine:
 
         action_result = ActionResult()
 
+        logger.info(
+            "ActionEngine start repository=%s issue=%s labels=%s comment=%s event_id=%s",
+            repository,
+            issue_id,
+            labels,
+            bool(comment_body),
+            event_id,
+        )
+
         if labels and not self.store.has_action(repository, issue_id, "labels"):
+            t_labels = time.perf_counter()
             self.client.add_labels(repository, issue_id, labels)
+            labels_ms = (time.perf_counter() - t_labels) * 1000
             self.store.record_action(
                 repository=repository,
                 issue_id=issue_id,
@@ -104,11 +118,19 @@ class ActionEngine:
                 action_hash=self._hash_text(",".join(labels)),
                 created_at=self._now_iso(),
             )
-            logger.info("Applied labels %s to %s#%s", labels, repository, issue_id)
+            logger.info(
+                "Applied labels %s to %s#%s in %.2f ms",
+                labels,
+                repository,
+                issue_id,
+                labels_ms,
+            )
             action_result.labels_applied = True
 
         if comment_body and not self.store.has_action(repository, issue_id, "comment"):
+            t_comment = time.perf_counter()
             self.client.post_comment(repository, issue_id, comment_body)
+            comment_ms = (time.perf_counter() - t_comment) * 1000
             self.store.record_action(
                 repository=repository,
                 issue_id=issue_id,
@@ -116,13 +138,28 @@ class ActionEngine:
                 action_hash=self._hash_text(comment_body),
                 created_at=self._now_iso(),
             )
-            logger.info("Posted comment to %s#%s", repository, issue_id)
+            logger.info(
+                "Posted comment to %s#%s in %.2f ms",
+                repository,
+                issue_id,
+                comment_ms,
+            )
             action_result.comment_posted = True
 
         if event_id is not None and event_created_at is not None:
             self.store.mark_event_processed(event_id, repository, event_created_at)
             logger.info("Recorded event %s for %s#%s", event_id, repository, issue_id)
             action_result.event_recorded = True
+
+        total_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            "ActionEngine complete repository=%s issue=%s labels_applied=%s comment_posted=%s total_ms=%.2f",
+            repository,
+            issue_id,
+            action_result.labels_applied,
+            action_result.comment_posted,
+            total_ms,
+        )
 
         return action_result
 

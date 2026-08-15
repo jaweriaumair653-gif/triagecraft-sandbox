@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import Sequence
 
 from triagecraft.duplicate_detector import find_duplicate_candidates
@@ -15,6 +17,8 @@ from triagecraft.models import (
 )
 from triagecraft.normalizer import normalize_issue
 from triagecraft.summarizer import summarize_issue
+
+logger = logging.getLogger(__name__)
 
 
 class TriageService:
@@ -33,11 +37,40 @@ class TriageService:
         """
         Run the full triage pipeline for one issue.
         """
+        total_start = time.perf_counter()
+
+        t_normalize = time.perf_counter()
         normalized = normalize_issue(issue)
+        normalize_ms = (time.perf_counter() - t_normalize) * 1000
+
+        t_duplicates = time.perf_counter()
         duplicate_candidates = find_duplicate_candidates(normalized, list(corpus))
+        duplicates_ms = (time.perf_counter() - t_duplicates) * 1000
+
+        t_labels = time.perf_counter()
         label_suggestions = suggest_labels(normalized, self.config.allowed_labels)
+        labels_ms = (time.perf_counter() - t_labels) * 1000
+
+        t_summary = time.perf_counter()
         summary = summarize_issue(normalized)
+        summary_ms = (time.perf_counter() - t_summary) * 1000
+
+        t_decide = time.perf_counter()
         decision = self._decide(normalized, duplicate_candidates, label_suggestions)
+        decide_ms = (time.perf_counter() - t_decide) * 1000
+
+        total_ms = (time.perf_counter() - total_start) * 1000
+
+        logger.info(
+            "TriageService timings issue=%s normalize=%.2fms duplicates=%.2fms labels=%.2fms summary=%.2fms decide=%.2fms total=%.2fms",
+            issue.id,
+            normalize_ms,
+            duplicates_ms,
+            labels_ms,
+            summary_ms,
+            decide_ms,
+            total_ms,
+        )
 
         return ProcessingResult(
             normalized_issue=normalized,
