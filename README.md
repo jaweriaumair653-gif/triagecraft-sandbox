@@ -13,6 +13,7 @@ GitHub App for automated issue triage: duplicate detection, label suggestions, i
 - Processes new issue openings and ignores follow-up label events
 - Suggests labels and posts maintainer-friendly triage feedback
 - Validates the project with lint, tests, Docker build, and smoke checks
+![TriageCraft demo](docs/screenshots/demo.png)
 
 ## Why this exists
 
