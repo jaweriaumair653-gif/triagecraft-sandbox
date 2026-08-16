@@ -7,6 +7,13 @@ GitHub App for automated issue triage: duplicate detection, label suggestions, i
 [![Docker](https://img.shields.io/badge/Docker-enabled-2496ED)](#)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](#)
 
+## Demo
+
+- Receives GitHub issue webhook events through a public tunnel
+- Processes new issue openings and ignores follow-up label events
+- Suggests labels and posts maintainer-friendly triage feedback
+- Validates the project with lint, tests, Docker build, and smoke checks
+
 ## Why this exists
 
 Open-source maintainers spend a significant amount of time on repetitive triage work, including:
