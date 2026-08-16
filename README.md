@@ -1,6 +1,11 @@
 # TriageCraft
 
-TriageCraft is a GitHub App that reduces repetitive maintainer work by detecting duplicate issues, suggesting labels, summarizing issue content, and highlighting missing information.
+GitHub App for automated issue triage: duplicate detection, label suggestions, issue summaries, and safe webhook handling.
+
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](#)
+[![Python](https://img.shields.io/badge/Python-3.14-blue)](#)
+[![Docker](https://img.shields.io/badge/Docker-enabled-2496ED)](#)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](#)
 
 ## Why this exists
 
