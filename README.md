@@ -15,6 +15,12 @@ GitHub App for automated issue triage: duplicate detection, label suggestions, i
 - Validates the project with lint, tests, Docker build, and smoke checks
 ![TriageCraft demo](docs/screenshots/demo.png)
 
+## How it works
+
+1. A GitHub issue webhook hits the app.
+2. The triage engine analyzes the issue, suggests labels, and checks for missing information.
+3. The action layer applies the safe response and ignores repeat follow-up events.
+
 ## Why this exists
 
 Open-source maintainers spend a significant amount of time on repetitive triage work, including:
